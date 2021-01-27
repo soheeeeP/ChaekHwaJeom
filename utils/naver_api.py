@@ -46,13 +46,13 @@ def search_book_info(isbn):
 
 
 def register_new_book(isbn,user):
-
     isbn = isbn.split(' ')[1]
 
-    # 사용자가 이전에 등록한 도서인 경우, 도서 등록을 수행하지 않고 return
-    if Book.objects.filter(Q(ISBN=isbn) & Q(user=user)).exists():
-        state = '이미 등록하신 도서입니다'
-        return state, None
+    if Book.objects.filter(ISBN=isbn).exists():
+        unique_check = Book.objects.filter(Q(ISBN=isbn) & Q(user=user))
+        if unique_check.exists():
+            state = f'{user.nickname}\'ve already registered book [{isbn}]'
+            return state, None
 
     # isbn으로 해당 도서 검색
     result = search_book_info(isbn)

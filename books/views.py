@@ -1,19 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from .models import Book, Review, Tag
-from .forms import BookForm, ReviewForm, TagForm, CommentForm
-import json
-import re
-from accounts.models import MyUser
-from utils.naver_api import search_book_info, register_new_book
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 
-from itertools import chain
+from .models import Book, Review
+from accounts.models import MyUser
 from chat.models import Message
-# Create your views here.
+from .forms import BookForm, ReviewForm, CommentForm
+
+import json,re
+from utils.naver_api import search_book_info, register_new_book
+
 def home(request):
     cur_user = request.user
     if request.method == "GET":
