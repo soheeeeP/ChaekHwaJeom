@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,Permissi
 import uuid
 from django.shortcuts import render, redirect
 
-# Create your models here.
+# Chaekhwajeom custom MyUser model manager
 class MyUserManager(BaseUserManager):
     def _create_user(self, email, password=None, **kwargs):
         if not email:
@@ -12,19 +12,17 @@ class MyUserManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
 
+    # 일반 유저 생성
     def create_user(self, email, password, **kwargs):
-        """
-        일반 유저 생성
-        """
         kwargs.setdefault('is_admin', False)
         return self._create_user(email, password, **kwargs)
+
+    # 관리자 유저 생성
     def create_superuser(self, email, password, **kwargs):
-        """
-        관리자 유저 생성
-        """
         kwargs.setdefault('is_admin', True)
         return self._create_user(email, password, **kwargs)
 
+    # 소셜 회원가입 유저 생성
     def get_or_create_google_user(self,user_pk):
         user = MyUser.objects.get(pk=user_pk)
         user.save()
@@ -32,6 +30,9 @@ class MyUserManager(BaseUserManager):
 
 class MyUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
+        db_table = 'user'
+        verbose_name = '사용자'
+        verbose_name_plural = verbose_name
         get_latest_by = 'date_joined'
 
     uuid = models.UUIDField(
@@ -62,29 +63,11 @@ class MyUser(AbstractBaseUser, PermissionsMixin):
         return self.nickname
 
     def has_perm(self, perm, obj=None):
-        # "Does the user have a specific permission?"
-        # Simplest possible answer: Yes, always
         return True
 
     def has_module_perms(self, app_label):
-        # "Does the user have permissions to view the app `app_label`?"
-        # Simplest possible answer: Yes, always
         return True
+
     @property
     def is_staff(self):
-        #"Is the user a member of staff?"
-        # Simplest possible answer: All admins are staff
         return self.is_admin
-    # class Meta:
-    #     db_table = 'users'
-    #     verbose_name = '유저'
-    #     verbose_name_plural = '유저들'
-    
-    # def __str__(self):
-    #     return self.name
-
-    # def create_user(email, password=None, **other_fields):
-    #     pass
-
-    # def create_superuser(email, password, **other_fields):
-    #     pass

@@ -36,10 +36,10 @@ SECRET_KEY = get_secret("DJANGO_SECRET_KEY")
 OS_ENVIRON_KEY = get_secret("OS_ENVIRON")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
-    'chaekhwajeom.pythonanywhere.com'    
+    # 'chaekhwajeom.pythonanywhere.com'    
     ]
 
 
@@ -63,7 +63,6 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.naver',
 ]
@@ -109,18 +108,17 @@ WSGI_APPLICATION = 'chaekhwajeom.wsgi.application'
 
 DATABASES = {
     
-    #'default' : {
+    # 'default' : {
     #    'ENGINE': 'django.db.backends.sqlite3',
     #    'NAME': os.path.join(BASE_DIR, 'db_sqlite3'),
-    #}
-    
+    # }  
      'default': {
          'ENGINE': 'django.db.backends.postgresql',
          'NAME': OS_ENVIRON_KEY['DATABASE']['NAME'],
          'USER': OS_ENVIRON_KEY['DATABASE']['USER'],
          'PASSWORD': OS_ENVIRON_KEY['DATABASE']['PASSWORD'],
          'HOST': OS_ENVIRON_KEY['DATABASE']['HOST'],
-         'PORT': '11968',
+         'PORT': '5432',
      }
 }
 
@@ -162,15 +160,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-#STATICFILES_DIRS = (
-#    os.path.join(BASE_DIR,'static'),
-#)
+STATICFILES_DIRS = (
+   os.path.join(BASE_DIR,'static'),
+)
 
-STATIC_ROOT = os.path.join(BASE_DIR,'static')
+# STATIC_ROOT = os.path.join(BASE_DIR,'static')
 
 MEDIA_URL = '/upload/'
 MEDIA_ROOT=os.path.join(BASE_DIR,'upload')
 
+LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 

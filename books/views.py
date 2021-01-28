@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from django.urls import reverse
 from django.core.paginator import Paginator
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.db.models import Q
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 from .models import Book, Review
 from accounts.models import MyUser
@@ -37,6 +40,7 @@ def query_book(request):
             # print(books)
             return render(request,'books/main_search.html',{'books':books})
 
+@login_required()
 def edit(request, pk):
     post = get_object_or_404(Book, pk=pk)
     if request.method == "POST":
@@ -51,27 +55,36 @@ def edit(request, pk):
         form = BookForm(instance=post)
     return render(request, 'books/edit.html', {'form': form})
 
+@login_required()
 def delete(request, pk):
-    post = get_object_or_404(Content, pk=pk)
-    post.delete()
-    return redirect('home')
+    book = get_object_or_404(Book, pk=pk)
+    if request.user == book.user:
+        if book.status == 2:
+            messages.error('현재 대여 중인 도서입니다.')
+        else:
+            book.delete_book()
+            messages.info(request,'도서가 삭제되었습니다.')
+    else:
+        messages.error(request,'잘못된 접근입니다.')
+    return redirect('user_library')
 
+
+@login_required()
 def user_library(request):
     user = request.user
+    books = Book.objects.filter(user=user)
+    for book in books:
+        review = get_object_or_404(Review, pk=book)
 
-    if user.is_authenticated:
-        books = Book.objects.filter(user=user)
-        for book in books:
-            review = get_object_or_404(Review,pk=book)
+        title = book.title.split('(')
+        book.title = title[0]
+        book.review = review
+        book.review_rate = range(review.rate)
 
-            title=book.title.split('(')
-            book.title = title[0]
-            book.review = review
-            book.review_rate = range(review.rate)
-
-        return render(request,'books/user_library.html',{'user':user,'books':books})
-    else:
-        return redirect('login')
+        return render(request, 'books/user_library.html', {'user': user, 'books': books})
+    
+    # kwargs값으로 nickname 붙여서 넘기기
+    return HttpResponseRedirect(reverse('user_library'))
 
 def book_search(request):
     if request.method == "GET":
@@ -102,9 +115,10 @@ def book_search(request):
 
     return redirect('book_search')
 
+@login_required()
+@require_POST
 def book_register(request):
     user = request.user
-
     if request.method == "POST":
         isbn = request.POST.get('isbnvalue')        # 도서 ISBN value
         status = request.POST.get('status')         # 도서 대여 상태
@@ -126,25 +140,23 @@ def book_register(request):
             )
             new_review.save()
 
+            messages.info(request,'도서와 리뷰가 등록되었습니다!')
             return redirect('book_search')
 
-    return redirect('book_search')
+    return HttpResponseRedirect(reverse('book_search'))
 
 
 def like(request):
     pk = request.POST.get('pk', None)
-    # book = get_object_or_404(Book, pk=pk) 
-    # book.title = book.title.split('(')[0]   
-    # neighbor = book.user
-    # posts = Review.objects.get(book=book)
     posts = get_object_or_404(Review, pk=pk)
     user = request.user
     if posts.likes_user.filter(email=user.email).exists():
         posts.likes_user.remove(user)
         message = '좋아요 취소'
+        messages.info(request,'좋아요를 취소하였습니다.')
     else:
         posts.likes_user.add(user)
-        message = '좋아요'
+        message.info(request,'좋아요!')
     context = {'likes_count':posts.count_likes_user(), 'message': message}
     return HttpResponse(json.dumps(context), content_type="application/json")
 
@@ -179,62 +191,30 @@ def book_detail(request, pk):
                     'rate_blank': range(5-review.rate),
                     'comment_form': comment_form
                     })
-
-def tag_add(request,pk):
-    book = get_object_or_404(Book,pk=pk)
-    tag_form = TagForm(request.POST)
-
-    if tag_form.is_valid():
-        tag = tag_form.save(commit=False)
-        # 추가하고자 하는 태그가 이미 존재하는 경우 그 객체를 가져오고, 없는 경우 새로 생성
-        tag, created = Tag.objects.get_or_create(name=tag.name)
-        # book객체에 tag 추가
-        book.tags.add(tag)     
-
-        return redirect('book_detail',pk=pk)
-
-def tag_detail(request,pk):
-    tag = get_object_or_404(Tag,pk=pk)
-    tag_posts = tag.book_set.all()
-
-    return render(request, 'books/tag_detail.html',{'tag':tag, 'tag_posts':tag_posts})
-
-    
-def tag_delete(request,pk,tag_pk):
-    book = get_object_or_404(Book,pk=pk)
-    tag = get_object_or_404(Tag,pk=tag_pk)
-
-    # book 객체에서 tag 삭제
-    book.tags.remove()
-
-    return redirect('book_detail',pk=pk)
   
 def service_manual(request):
     return render(request, 'books/service_manual.html')
 
+
+@login_required()
 def neighbor_library(request):
     cur_user = request.user
-    if cur_user.is_authenticated:
-        result = []
-        dong = MyUser.objects.filter(dong__icontains=cur_user.dong).exclude(email=cur_user.email)
-        for d in dong:                              # 로그인된 사용자와 같은 동에 거주하는 user
-            # print(d.username)
-            # print(Book.objects.filter(user=d).count())
-            books = d.bookuser.all()
-            books_cnt = books.count()
-            if books_cnt > 0 :
-                info = {}
-                info['user'] = d
-                info['books'] = d.bookuser.all()
-                info['books_cnt'] = books_cnt
-                result.append(info)
+    result = []
+    dong = MyUser.objects.filter(
+       dong__icontains=cur_user.dong).exclude(email=cur_user.email)
+    for d in dong:                              # 로그인된 사용자와 같은 동에 거주하는 user
+        books = d.bookuser.all()
+        books_cnt = books.count()
+        if books_cnt > 0:
+            info = {}
+            info['user'] = d
+            info['books'] = d.bookuser.all()
+            info['books_cnt'] = books_cnt
+            result.append(info)
 
-        result.sort(key=lambda x:x['books_cnt'],reverse=True)
-        print(result)
-        if not result:
-            print('noneeeee')
-        return render(request,'books/neighbor_library.html',{'neighbor':result})
-    else:
-        return redirect('login')
-
-    return render(request, 'books/neighbor_library.html')
+    result.sort(key=lambda x: x['books_cnt'], reverse=True)
+    print(result)
+    if not result:
+        print('noneeeee')
+    
+    return render(request, 'books/neighbor_library.html', {'neighbor': result})

@@ -31,7 +31,6 @@ urlpatterns = [
     path('registration/edit',accounts.views.edit,name="edit"),
     path('registration/pw_change',accounts.views.pw_change,name="pw_change"),
     path('registration/edit_address', accounts.views.edit_address,name='edit_address'),
-    path('library/',books.views.user_library,name="library"),
     path('book_detail/<int:pk>/delete', books.views.delete, name="delete"),
     path('book_detail/<int:pk>/', books.views.book_detail, name="book_detail"),
     path('like', books.views.like, name='like'),
@@ -39,9 +38,6 @@ urlpatterns = [
     path('book_search/',books.views.book_search,name="book_search"),
     path('book_register/',books.views.book_register,name="book_register"),
     
-    path('tagadd/<int:pk>',books.views.tag_add,name="tag_add"),
-    path('tagdetail/<int:pk>/',books.views.tag_detail,name="tag_detail"),
-  
     path('registration/register/', accounts.views.register, name="register"),
     path('accounts/', include('allauth.urls')),
     path('registration/', include('django.contrib.auth.urls')),
@@ -69,7 +65,7 @@ urlpatterns = [
     path('report/',chat.views.report,name="report"),
     path('books/service_manual', books.views.service_manual, name= "service_manual"),
     path('books/neighbor_library', books.views.neighbor_library, name = "neighbor_library"),
-    path('books/user_library', books.views.user_library, name="user_library"),
+    path('books/user_library/', books.views.user_library, name="user_library"),
     # path('books/search/newURL',books.views.search,name="pagination"),
 ]
 

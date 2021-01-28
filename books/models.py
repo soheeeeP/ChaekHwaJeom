@@ -6,7 +6,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from accounts.models import MyUser
 
-# custom manager
+# Chaekhwajeom custom Book model manager
 class BookManager(models.Manager):
     use_for_related_fields = True
 
@@ -45,6 +45,9 @@ class Book(models.Model):
             if unique_check.exists():
                 return False, f'{user.nickname}\'ve already registered book [{isbn}]'
         return True
+
+    def delete_book(self):
+        self.delete()
 
     def save(self,*args,**kwargs):
         return super(Book,self).save(*args,**kwargs)

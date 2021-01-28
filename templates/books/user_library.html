@@ -12,7 +12,6 @@
 
 <script>
     $(document).ready(function () {
-        // $('.book').popover();
         $('.book').popover({
             html: true,
             container: 'body',
@@ -21,15 +20,14 @@
                 return $('#user-book-detail-content-' + id).html();
             }
         });
+       // $('#myModal').show('modal');
     });
-    // function showDetailPage(){
-    //     $('.cover').popover({
-    //         html: true,
-    //         content: function () {
-    //             return $('#user-book-detail-content').html();
-    //         }
-    //     });     
-    // }
+    $(document).on('show.bs.modal','#bookDeleteModal',function(event){
+        var button = $(event.relatedTarget)
+        pk = button.data('pk')
+
+        $(this).find('#modal-hidden-data').val(pk)
+    })
 </script>
 
 <body>
@@ -37,12 +35,12 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="bookEditModalLabel">New message</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="modal-body">
+        <h5 class="modal-title name" id="bookDeleteModalLabel" style="display: none;">도서 등록하기</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
               <form>
                 <div class="form-group">
                   <label for="recipient-name" class="col-form-label">Recipient:</label>
@@ -58,6 +56,10 @@
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
               <button type="button" class="btn btn-primary">Send message</button>
             </div>
+        <input id="modal-hidden-data" name="pkvalue" style="display: none;">
+        <button type="submit" class="btn-chaekhwajeom">
+            <a>네 😭</a>
+        </button>
           </div>
         </div>
       </div>
