@@ -1,6 +1,7 @@
 # 지역 기반 도서 거래 플랫폼
 
-![chaekhwajeom.pythonanywhere.com](https://github.com/soheeeeP/ChaekHwaJeom-django/blob/master/img/chaekhwajeom_main.png)(chaekhwajeom.pythonanywhere.com)
+![chaekhwajeom.pythonanywhere.com](https://github.com/soheeeeP/ChaekHwaJeom-django/blob/master/img/chaekhwajeom_main.png)
+<chaekhwajeom.pythonanywhere.com>
 
 ***
 
